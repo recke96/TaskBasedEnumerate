@@ -1,0 +1,14 @@
+/var/home/jecker/Projects/EnumerateAsync/EnumerateAsync/bin/Debug/net10.0/EnumerateAsync
+/var/home/jecker/Projects/EnumerateAsync/EnumerateAsync/bin/Debug/net10.0/EnumerateAsync.deps.json
+/var/home/jecker/Projects/EnumerateAsync/EnumerateAsync/bin/Debug/net10.0/EnumerateAsync.runtimeconfig.json
+/var/home/jecker/Projects/EnumerateAsync/EnumerateAsync/bin/Debug/net10.0/EnumerateAsync.dll
+/var/home/jecker/Projects/EnumerateAsync/EnumerateAsync/bin/Debug/net10.0/EnumerateAsync.pdb
+/var/home/jecker/Projects/EnumerateAsync/EnumerateAsync/obj/Debug/net10.0/EnumerateAsync.GeneratedMSBuildEditorConfig.editorconfig
+/var/home/jecker/Projects/EnumerateAsync/EnumerateAsync/obj/Debug/net10.0/EnumerateAsync.AssemblyInfoInputs.cache
+/var/home/jecker/Projects/EnumerateAsync/EnumerateAsync/obj/Debug/net10.0/EnumerateAsync.AssemblyInfo.cs
+/var/home/jecker/Projects/EnumerateAsync/EnumerateAsync/obj/Debug/net10.0/EnumerateAsync.csproj.CoreCompileInputs.cache
+/var/home/jecker/Projects/EnumerateAsync/EnumerateAsync/obj/Debug/net10.0/EnumerateAsync.dll
+/var/home/jecker/Projects/EnumerateAsync/EnumerateAsync/obj/Debug/net10.0/refint/EnumerateAsync.dll
+/var/home/jecker/Projects/EnumerateAsync/EnumerateAsync/obj/Debug/net10.0/EnumerateAsync.pdb
+/var/home/jecker/Projects/EnumerateAsync/EnumerateAsync/obj/Debug/net10.0/EnumerateAsync.genruntimeconfig.cache
+/var/home/jecker/Projects/EnumerateAsync/EnumerateAsync/obj/Debug/net10.0/ref/EnumerateAsync.dll
