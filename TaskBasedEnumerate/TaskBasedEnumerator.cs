@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks.Sources;
 
 namespace TaskBasedEnumerate;
 
@@ -26,59 +27,90 @@ public interface IEnumerationContext<in T>
 }
 
 file sealed class TaskBasedEnumerator<T>(Func<IEnumerationContext<T>, Task> block)
-    : IEnumerator<T>, IEnumerationContext<T>
+    : IEnumerator<T>, IEnumerationContext<T>, IValueTaskSource
 {
-    private static readonly object _sentinel = new();
+    private Action<object?>? _continuation;
+    private object? _state;
 
-    private SemaphoreSlim _read = new(0, 1);
-    private SemaphoreSlim _write = new(0, 1);
+    private bool _initialized;
+    private short _token;
 
-    private Task? _blockTask;
-    private object? _current = _sentinel;
+    private T _current = default!;
 
     public bool MoveNext()
     {
-        _write.Release(); // Run to the next yield.
-        _blockTask ??= block(this); // Run the block if it is not already running.
+        // Capture the current continuation + state.
+        var continuation = _continuation;
+        var state = _state;
 
-        if (_blockTask.IsCompleted)
+        // Reset for the next iteration.
+        _continuation = null;
+        _state = null;
+
+        switch (_initialized)
         {
-            // When the block is completed, the enumerator is done.
-            return false;
+            case true when continuation is not null:
+                continuation(state);
+                _token++;
+                break;
+            case false:
+                _initialized = true;
+                block(this);
+                break;
+            default:
+                // Initialized, but no continuation.
+                return false;
         }
 
-        _read.Wait(); // Wait for yield
-        return true;
+        // If the block or the previous continuation set a new continuation, we have a next value
+        return _continuation is not null;
     }
 
     public void Reset()
     {
-        _blockTask = null;
-        _current = _sentinel;
-        _read.Dispose();
-        _write.Dispose();
-        _read = new SemaphoreSlim(0, 1);
-        _write = new SemaphoreSlim(0, 1);
+        _continuation = null;
+        _state = null;
+        _initialized = false;
+        _token++;
     }
 
-    public T Current => ReferenceEquals(_sentinel, _current)
-        ? throw new InvalidOperationException("Not initialized (Call MoveNext() first).")
-        : _blockTask?.IsCompleted == true
-            ? throw new InvalidOperationException("No such element.")
-            : (T)_current!;
+    public ValueTask Yield(T value)
+    {
+        _current = value;
+        return new ValueTask(this, _token);
+    }
+
+    public T Current => _initialized ? _current : throw new InvalidOperationException();
+
 
     object? IEnumerator.Current => Current;
 
     public void Dispose()
     {
-        _read.Dispose();
-        _write.Dispose();
     }
 
-    public async ValueTask Yield(T value)
+    public void GetResult(short token)
     {
-        await _write.WaitAsync(); // Wait for MoveNext
-        _current = value;
-        _read.Release();
+        // Void - we have no result
+        // Maybe throw if the token doesn't match?
+    }
+
+    public ValueTaskSourceStatus GetStatus(short token) =>
+        _token == token
+            ? ValueTaskSourceStatus.Pending
+            : ValueTaskSourceStatus.Succeeded;
+
+    public void OnCompleted(
+        Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags
+    )
+    {
+        if (_token != token)
+        {
+            // Maybe some throw?
+            return;
+        }
+
+        _continuation = continuation;
+        _state = state;
     }
 }
