@@ -4,7 +4,7 @@ using TaskBasedEnumerate;
 
 Console.WriteLine("Hello, task-based enumeration!");
 
-var oneThroughTen = IEnumerable<int>.Produce(async ctx =>
+var oneThroughTen = Enumerable.Produce<int>(async ctx =>
 {
     await ctx.Yield(1);
     await ctx.Yield(2);
@@ -24,12 +24,12 @@ foreach (var i in oneThroughTen)
 }
 Console.WriteLine();
 
-foreach (var _ in IEnumerable<int>.Produce(_ => Task.CompletedTask))
+foreach (var _ in Enumerable.Produce<int>(_ => Task.CompletedTask))
 {
     Console.WriteLine("This will never happen.");
 }
 
-var fibs = IEnumerable<int>.Produce(async ctx =>
+var fibs = Enumerable.Produce<int>(async ctx =>
     {
         var prev = 0;
         var next = 1;

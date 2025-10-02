@@ -5,9 +5,9 @@ namespace TaskBasedEnumerate;
 
 public static class EnumerableExtensions
 {
-    extension<T>(IEnumerable<T>)
+    extension(Enumerable)
     {
-        public static IEnumerable<T> Produce(Func<IEnumerationContext<T>, Task> block)
+        public static IEnumerable<T> Produce<T>(Func<IEnumerationContext<T>, Task> block)
         {
             return new TaskBasedEnumerable<T>(block);
         }
@@ -62,7 +62,9 @@ file sealed class TaskBasedEnumerator<T>(Func<IEnumerationContext<T>, Task> bloc
                 return false;
         }
 
-        // If the block or the previous continuation set a new continuation, we have a next value
+        // If the block or the captured continuation produced a new continuation,
+        // we have a current value because only value tasks produced by this enumerator's Yield
+        // will register their continuation here.
         return _continuation is not null;
     }
 
@@ -81,8 +83,6 @@ file sealed class TaskBasedEnumerator<T>(Func<IEnumerationContext<T>, Task> bloc
     }
 
     public T Current => _initialized ? _current : throw new InvalidOperationException();
-
-
     object? IEnumerator.Current => Current;
 
     public void Dispose()
