@@ -9,16 +9,9 @@ public static class EnumerableExtensions
     {
         public static IEnumerable<T> Produce<T>(Func<IEnumerationContext<T>, Task> block)
         {
-            return new TaskBasedEnumerable<T>(block);
+            return new TaskBasedEnumerator<T>(block);
         }
     }
-}
-
-file sealed class TaskBasedEnumerable<T>(Func<IEnumerationContext<T>, Task> block) : IEnumerable<T>
-{
-    public IEnumerator<T> GetEnumerator() => new TaskBasedEnumerator<T>(block);
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
 public interface IEnumerationContext<in T>
@@ -27,8 +20,10 @@ public interface IEnumerationContext<in T>
 }
 
 file sealed class TaskBasedEnumerator<T>(Func<IEnumerationContext<T>, Task> block)
-    : IEnumerator<T>, IEnumerationContext<T>, IValueTaskSource
+    : IEnumerable<T>, IEnumerator<T>, IEnumerationContext<T>, IValueTaskSource
 {
+    private readonly int _initialThreadId = Environment.CurrentManagedThreadId;
+    
     private Action<object?>? _continuation;
     private object? _state;
 
@@ -36,6 +31,18 @@ file sealed class TaskBasedEnumerator<T>(Func<IEnumerationContext<T>, Task> bloc
     private short _token;
 
     private T _current = default!;
+    
+    public IEnumerator<T> GetEnumerator()
+    {
+        if (!_initialized && _initialThreadId == Environment.CurrentManagedThreadId)
+        {
+            return this;
+        }
+
+        return new TaskBasedEnumerator<T>(block);
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public bool MoveNext()
     {
